@@ -13,7 +13,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.function.Function;
 
 @SpringBootApplication
@@ -33,15 +32,15 @@ public class SpringCloudFunctionApplication {
     public Function<Payment, PaymentReport> uppercase() {
         return (input) -> {
             PaymentReport paymentReport = PaymentReport.builder()
-                    .uuid(UUID.randomUUID())
                     .user(input.getUser())
                     .amount(input.getAmount())
                     .dateTime(LocalDateTime.now())
                     .status("success")
                     .build();
-            sendEmail(paymentReport);
-            paymentReportService.save(paymentReport);
-            return paymentReport;
+            System.out.println("Data processed: -> "+paymentReport);
+            PaymentReport report = paymentReportService.save(paymentReport);
+            sendEmail(report);
+            return report;
         };
     }
 
@@ -52,9 +51,9 @@ public class SpringCloudFunctionApplication {
             mimeMessageHelper.setTo(paymentReport.getUser());
             mimeMessageHelper.setSubject("Your payment has been received and processed successfully");
             mimeMessageHelper.setText("Payment for account: " + paymentReport.getUser()
-                    + "\n Amount " + paymentReport.getAmount()
-                    + "  has been processed successfully on " + paymentReport.getDateTime()
-                    + "\n\n Thank you for your continued support \n\nEA fanatics");
+                    + "\nAmount " + paymentReport.getAmount()
+                    + "has been processed successfully on " + paymentReport.getDateTime()
+                    + "\n\nThank you for your continued support \n\n");
         }
         catch (MessagingException messagingException){
             messagingException.printStackTrace();
